@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * StudySync — Schedule Page
+ * -------------------------
+ * Displays an AI-generated weekly/day calendar (react-big-calendar) and
+ * supporting insights. Comments aim to clarify the flow and key design
+ * choices without being noisy.
+ */
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
@@ -9,10 +17,12 @@ import { format, parse, startOfWeek, getDay } from 'date-fns';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { enUS } from 'date-fns/locale/en-US';
 
+// Locales passed to the date-fns localizer for react-big-calendar
 const locales = {
   'en-US': enUS,
 };
 
+// Bridge react-big-calendar to date-fns utilities
 const localizer = dateFnsLocalizer({
   format,
   parse,
@@ -21,28 +31,33 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
+// Shape returned by your /api/schedule endpoint for each block
 interface ScheduleBlock {
   taskId: string;
   taskTitle: string;
   subject: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  duration: number;
-  priority: string;
-  reasoning: string;
+  date: string; // ISO date (YYYY-MM-DD)
+  startTime: string; // "HH:mm"
+  endTime: string; // "HH:mm"
+  duration: number; // hours
+  priority: string; // 'high' | 'medium' | 'low'
+  reasoning: string; // brief explanation from AI
 }
 
+// Calendar event type consumed by react-big-calendar
 interface CalendarEvent {
   title: string;
   start: Date;
   end: Date;
-  resource: ScheduleBlock;
+  resource: ScheduleBlock; // keep original block for modal/details
 }
 
 export default function SchedulePage() {
+  // Auth context: user + token, plus helpers
   const { user, token, logout, isLoading } = useAuth();
   const router = useRouter();
+
+  // UI + data state
   const [generating, setGenerating] = useState(false);
   const [schedule, setSchedule] = useState<ScheduleBlock[]>([]);
   const [insights, setInsights] = useState<string[]>([]);
@@ -50,12 +65,14 @@ export default function SchedulePage() {
   const [error, setError] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<ScheduleBlock | null>(null);
 
+  // Redirect unauthenticated users once auth has finished loading
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/');
     }
   }, [user, isLoading, router]);
 
+  // Call backend to build an AI schedule based on preferences
   const handleGenerateSchedule = async () => {
     setGenerating(true);
     setError('');
@@ -65,10 +82,12 @@ export default function SchedulePage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // Bearer token for protected endpoint
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           preferences: {
+            // Example static prefs; in production, consider making these user-configurable
             studyHoursPerDay: 4,
             preferredTimes: ['morning', 'evening'],
             breakDuration: 5,
@@ -79,26 +98,30 @@ export default function SchedulePage() {
       const data = await response.json();
 
       if (!response.ok) {
+        // Surface API-provided error message when available
         throw new Error(data.error || 'Failed to generate schedule');
       }
 
+      // Populate UI with results
       setSchedule(data.schedule);
       setInsights(data.insights);
       setTotalHours(data.totalStudyHours);
-
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate schedule');
+      // Helpful for debugging; safe to keep in dev
       console.error('Error generating schedule:', err);
     } finally {
       setGenerating(false);
     }
   };
 
+  // Simple logout + redirect
   const handleLogout = () => {
     logout();
     router.push('/');
   };
 
+  // While we don't yet know auth status, show a placeholder spinner page
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -107,16 +130,18 @@ export default function SchedulePage() {
     );
   }
 
+  // If we got here unauthed (e.g., brief flash), render nothing (useEffect will redirect)
   if (!user) return null;
 
-  // Convert schedule blocks to calendar events
+  // Transform backend schedule blocks into react-big-calendar events
   const events: CalendarEvent[] = schedule.map((block) => {
     const [hours, minutes] = block.startTime.split(':');
     const [endHours, endMinutes] = block.endTime.split(':');
-    
+
+    // Build concrete Date objects for the given day with the supplied time
     const startDate = new Date(block.date);
     startDate.setHours(parseInt(hours), parseInt(minutes), 0);
-    
+
     const endDate = new Date(block.date);
     endDate.setHours(parseInt(endHours), parseInt(endMinutes), 0);
 
@@ -128,11 +153,12 @@ export default function SchedulePage() {
     };
   });
 
+  // Color-code events by priority (fallback to purple if unknown)
   const eventStyleGetter = (event: CalendarEvent) => {
     const colors: { [key: string]: string } = {
-      'high': '#ef4444',
-      'medium': '#f59e0b',
-      'low': '#10b981',
+      high: '#ef4444',
+      medium: '#f59e0b',
+      low: '#10b981',
     };
 
     const backgroundColor = colors[event.resource.priority] || '#8b5cf6';
@@ -153,7 +179,7 @@ export default function SchedulePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header / Nav */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
@@ -179,16 +205,15 @@ export default function SchedulePage() {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Page intro */}
         <div className="mb-6">
           <h2 className="text-3xl font-bold text-gray-800 mb-2">AI Study Schedule</h2>
-          <p className="text-gray-600">
-            Generate an optimized study schedule based on your tasks and deadlines
-          </p>
+          <p className="text-gray-600">Generate an optimized study schedule based on your tasks and deadlines</p>
         </div>
 
-        {/* Generate Button */}
+        {/* Generate button */}
         <div className="mb-6">
           <button
             onClick={handleGenerateSchedule}
@@ -197,6 +222,7 @@ export default function SchedulePage() {
           >
             {generating ? (
               <span className="flex items-center gap-2">
+                {/* Simple inline spinner icon */}
                 <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -209,7 +235,7 @@ export default function SchedulePage() {
           </button>
         </div>
 
-        {/* Error Message */}
+        {/* Error banner with actionable link when no tasks exist */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg mb-6">
             <strong>Error:</strong> {error}
@@ -223,7 +249,7 @@ export default function SchedulePage() {
           </div>
         )}
 
-        {/* AI Insights */}
+        {/* AI insights summary */}
         {insights.length > 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
             <h3 className="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2">
@@ -245,11 +271,12 @@ export default function SchedulePage() {
           </div>
         )}
 
-        {/* Calendar */}
+        {/* Calendar display */}
         {schedule.length > 0 ? (
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-800">Your Optimized Schedule</h3>
+              {/* Simple legend for priority colors */}
               <div className="flex gap-3 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded bg-red-500"></div>
@@ -266,6 +293,12 @@ export default function SchedulePage() {
               </div>
             </div>
 
+            {/*
+              react-big-calendar notes:
+              - views: limit to week/day for focus
+              - min/max: only the time-of-day is used; date portion is ignored by RBC
+                (we pass a Date but it acts as a time template). Adjust as desired.
+            */}
             <div style={{ height: '600px' }}>
               <Calendar
                 localizer={localizer}
@@ -285,12 +318,11 @@ export default function SchedulePage() {
             </div>
           </div>
         ) : (
+          // Empty state encouraging the user to generate a schedule
           <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100">
             <div className="text-6xl mb-4">📅</div>
             <h3 className="text-xl font-semibold text-gray-800 mb-2">No Schedule Yet</h3>
-            <p className="text-gray-600 mb-6">
-              Click the button above to generate your AI-optimized study schedule!
-            </p>
+            <p className="text-gray-600 mb-6">Click the button above to generate your AI-optimized study schedule!</p>
             <div className="text-sm text-gray-500">
               Make sure you have some pending tasks in your{' '}
               <Link href="/tasks" className="text-purple-600 hover:underline font-semibold">
@@ -300,7 +332,7 @@ export default function SchedulePage() {
           </div>
         )}
 
-        {/* Event Details Modal */}
+        {/* Event details modal (click an event to open) */}
         {selectedEvent && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
@@ -308,10 +340,10 @@ export default function SchedulePage() {
           >
             <div
               className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()} // prevent backdrop click from closing while interacting
             >
               <h3 className="text-2xl font-bold text-gray-800 mb-4">{selectedEvent.taskTitle}</h3>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-gray-700">
                   <span className="font-semibold">Subject:</span>
@@ -330,11 +362,13 @@ export default function SchedulePage() {
 
                 <div className="flex items-center gap-2 text-gray-700">
                   <span className="font-semibold">Priority:</span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    selectedEvent.priority === 'high' ? 'bg-red-100 text-red-700' :
-                    selectedEvent.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-green-100 text-green-700'
-                  }`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      selectedEvent.priority === 'high' ? 'bg-red-100 text-red-700' :
+                      selectedEvent.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'
+                    }`}
+                  >
                     {selectedEvent.priority.toUpperCase()}
                   </span>
                 </div>
