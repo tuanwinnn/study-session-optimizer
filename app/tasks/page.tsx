@@ -170,12 +170,17 @@ export default function TasksPage() {
 
   if (!user) return null;
 
-  const filteredTasks = tasks.filter(task => {
-    if (filter === 'all') return true;
-    if (filter === 'pending') return task.status === 'pending' || task.status === 'in-progress';
-    if (filter === 'completed') return task.status === 'completed';
-    return true;
-  });
+const filteredTasks = tasks.filter(task => {
+  // First, filter out overdue tasks (past deadline and not completed)
+  const isOverdue = new Date(task.deadline) < new Date() && task.status !== 'completed';
+  if (isOverdue) return false;
+  
+  // Then apply the regular filters
+  if (filter === 'all') return true;
+  if (filter === 'pending') return task.status === 'pending' || task.status === 'in-progress';
+  if (filter === 'completed') return task.status === 'completed';
+  return true;
+});
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
