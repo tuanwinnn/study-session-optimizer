@@ -310,7 +310,7 @@ This project is licensed under the MIT License.
 
 **Tuan Nguyen**
 - GitHub: [@tuanwinnn](https://github.com/tuanwinnn)
-- LinkedIn: [Tuan Nguyen](linkedin.com/in/tuan-nguyen-237656326)
+- LinkedIn: [Tuan Nguyen](https://www.linkedin.com/in/tuan-nguyen-237656326/)
 
 ---
 
