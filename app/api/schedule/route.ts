@@ -95,9 +95,22 @@ export async function POST(request: Request) {
     // Parse AI response
     const schedule = JSON.parse(responseText || '{}');
 
+    // FILTER OUT PAST DATES - AI sometimes ignores instructions
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const filteredSchedule = (schedule.schedule || []).filter((block: any) => {
+      const blockDate = new Date(block.date);
+      blockDate.setHours(0, 0, 0, 0);
+      return blockDate >= today; // Only keep today and future dates
+    });
+
+    console.log('Original schedule items:', schedule.schedule?.length || 0);
+    console.log('Filtered schedule items:', filteredSchedule.length);
+
     return NextResponse.json({
       message: 'Schedule generated successfully',
-      schedule: schedule.schedule || [],
+      schedule: filteredSchedule,
       insights: schedule.insights || [],
       totalStudyHours: schedule.totalStudyHours || 0,
     });
@@ -115,6 +128,8 @@ export async function POST(request: Request) {
 // Build the prompt for OpenAI
 function buildSchedulePrompt(tasks: TaskDocument[], preferences: UserPreferences): string {
   const today = new Date();
+  today.setHours(0, 0, 0, 0); // Start of today
+  
   const nextWeek = new Date(today);
   nextWeek.setDate(today.getDate() + 7);
 
@@ -139,8 +154,10 @@ Task ${index + 1}:
   return `
 You are helping a college student optimize their study schedule for the next 7 days.
 
-CURRENT DATE: ${today.toLocaleDateString()}
+CURRENT DATE: ${today.toLocaleDateString()} (IMPORTANT: Do NOT schedule anything before this date)
 SCHEDULE PERIOD: ${today.toLocaleDateString()} to ${nextWeek.toLocaleDateString()}
+
+CRITICAL RULE: Only schedule study sessions from TODAY (${today.toLocaleDateString()}) onwards. Never schedule on past dates.
 
 STUDENT'S TASKS:
 ${tasksDescription}
@@ -151,14 +168,15 @@ STUDENT'S PREFERENCES:
 - Break duration between sessions: ${preferences.breakDuration} minutes
 
 SCHEDULING RULES:
-1. Prioritize tasks with closer deadlines
-2. Give more time to high-priority tasks
-3. Break large tasks into multiple study sessions (max 2 hours per session)
-4. Schedule difficult subjects during preferred times
-5. Include breaks between study sessions
-6. Don't exceed the maximum daily study hours
-7. Use spaced repetition: spread studying for the same subject across multiple days
-8. Leave buffer time before deadlines (don't schedule on the deadline day itself)
+1. **NEVER schedule tasks on dates before ${today.toLocaleDateString()}** - only schedule from today onwards
+2. Prioritize tasks with closer deadlines
+3. Give more time to high-priority tasks
+4. Break large tasks into multiple study sessions (max 2 hours per session)
+5. Schedule difficult subjects during preferred times
+6. Include breaks between study sessions
+7. Don't exceed the maximum daily study hours
+8. Use spaced repetition: spread studying for the same subject across multiple days
+9. Leave buffer time before deadlines (don't schedule on the deadline day itself)
 
 RESPONSE FORMAT (Must be valid JSON):
 {

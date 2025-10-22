@@ -17,12 +17,17 @@ const StudySessionSchema = new mongoose.Schema({
   },
   endTime: {
     type: Date,
+    default: null, // null means session is still active
   },
-  duration: {
-    type: Number, // in minutes
+  pomodorosCompleted: {
+    type: Number,
     default: 0,
   },
-  completed: {
+  totalMinutes: {
+    type: Number,
+    default: 0,
+  },
+  wasCompleted: {
     type: Boolean,
     default: false,
   },

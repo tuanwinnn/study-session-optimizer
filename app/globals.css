@@ -12,12 +12,20 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Add dark mode variables */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
 }
+
+/* Enable class-based dark mode */
+html.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
 
 body {
   background: var(--background);
@@ -33,9 +41,9 @@ body {
 
 .rbc-header {
   padding: 10px 3px;
-  font-weight: 600;
-  font-size: 14px;
-  color: #374151;
+  font-weight: 700;
+  font-size: 16px;
+  color: #1f2937;
   border-bottom: 2px solid #e5e7eb;
 }
 
@@ -65,7 +73,8 @@ body {
   border-radius: 8px;
   background: white;
   color: #374151;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 15px;
   transition: all 0.2s;
 }
 
@@ -80,10 +89,30 @@ body {
   border-color: #8b5cf6;
 }
 
+/* Date range text (October 19 – 25) */
+.rbc-toolbar-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
 .rbc-time-view {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   overflow: hidden;
+}
+
+/* Time column on the left */
+.rbc-time-slot {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.rbc-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 /* Force black text in all inputs and text areas */

@@ -102,8 +102,8 @@ export default function Dashboard() {
   // Initial auth-resolving splash
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
+        <div className="text-xl text-gray-600 ">Loading...</div>
       </div>
     );
   }
@@ -120,9 +120,9 @@ export default function Dashboard() {
     .slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 ">
       {/* Header / Nav */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white  shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <h1 className="text-2xl font-bold text-purple-600">📚 StudySync</h1>
@@ -130,17 +130,20 @@ export default function Dashboard() {
               <Link href="/dashboard" className="text-purple-600 font-semibold">
                 Dashboard
               </Link>
-              <Link href="/tasks" className="text-gray-600 hover:text-purple-600">
+              <Link href="/tasks" className="text-gray-600  hover:text-purple-600">
                 Tasks
               </Link>
-              <Link href="/schedule" className="text-gray-600 hover:text-purple-600">
+              <Link href="/schedule" className="text-gray-600  hover:text-purple-600">
                 Schedule
+              </Link>
+              <Link href="/analytics" className="text-gray-600 hover:text-purple-600">
+                Analytics
               </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-gray-700">👋 {user.name}</span>
-            <button onClick={handleLogout} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
+            <button onClick={handleLogout} className="px-4 py-2 text-sm text-gray-600  hover:text-gray-800 ">
               Logout
             </button>
           </div>
@@ -151,29 +154,29 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Welcome copy */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome back, {user.name}! 👋</h2>
-          <p className="text-gray-600">Here&apos;s your study overview for today</p>
+          <h2 className="text-3xl font-bold text-gray-800  mb-2">Welcome back, {user.name}! 👋</h2>
+          <p className="text-gray-600 ">Here&apos;s your study overview for today</p>
         </div>
 
         {/* KPI / Stats cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="text-gray-600 text-sm font-medium mb-1">Total Tasks</div>
-            <div className="text-3xl font-bold text-gray-800">{stats.totalTasks}</div>
+          <div className="bg-white  rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="text-gray-600  text-sm font-medium mb-1">Total Tasks</div>
+            <div className="text-3xl font-bold text-gray-800 ">{stats.totalTasks}</div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="text-gray-600 text-sm font-medium mb-1">Completed</div>
+          <div className="bg-white  rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="text-gray-600  text-sm font-medium mb-1">Completed</div>
             <div className="text-3xl font-bold text-green-600">{stats.completedTasks}</div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="text-gray-600 text-sm font-medium mb-1">Pending</div>
+          <div className="bg-white  rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="text-gray-600  text-sm font-medium mb-1">Pending</div>
             <div className="text-3xl font-bold text-orange-600">{stats.pendingTasks}</div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="text-gray-600 text-sm font-medium mb-1">Total Hours</div>
+          <div className="bg-white  rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="text-gray-600  text-sm font-medium mb-1">Total Hours</div>
             <div className="text-3xl font-bold text-purple-600">{stats.totalHours}h</div>
           </div>
         </div>
@@ -181,8 +184,8 @@ export default function Dashboard() {
         {/* Quick actions + Upcoming list */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Quick Actions</h3>
+          <div className="bg-white  rounded-xl shadow-sm p-6 border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800  mb-4">Quick Actions</h3>
             <div className="space-y-3">
               <Link
                 href="/tasks"
@@ -200,8 +203,8 @@ export default function Dashboard() {
           </div>
 
           {/* Upcoming deadlines */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Upcoming Deadlines</h3>
+          <div className="bg-white  rounded-xl shadow-sm p-6 border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800  mb-4">Upcoming Deadlines</h3>
             {loadingTasks ? (
               <div className="text-gray-500">Loading tasks...</div>
             ) : upcomingTasks.length === 0 ? (
@@ -227,13 +230,13 @@ export default function Dashboard() {
                     <div
                       key={task._id}
                       className={`p-3 rounded-lg border-l-4 ${
-                        isUrgent ? 'bg-red-50 border-red-500' : 'bg-gray-50 border-purple-500'
+                        isUrgent ? 'bg-red-50 border-red-500' : 'bg-gray-50  border-purple-500'
                       }`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="font-semibold text-gray-800">{task.title}</div>
-                          <div className="text-sm text-gray-600">{task.subject}</div>
+                          <div className="font-semibold text-gray-800  ">{task.title}</div>
+                          <div className="text-sm text-gray-600 ">{task.subject}</div>
                         </div>
                         <div
                           className={`text-xs font-semibold px-2 py-1 rounded ${

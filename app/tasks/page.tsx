@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
+import PomodoroTimer from '../components/PomodoroTimer';
 
 interface Task {
   _id: string;
@@ -25,6 +26,20 @@ export default function TasksPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [showTimer, setShowTimer] = useState(false);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+  // timer function
+  const handleStartTimer = (task: Task) => {
+  setActiveTask(task);
+  setShowTimer(true);
+  };
+
+const handleTimerComplete = () => {
+  setShowTimer(false);
+  setActiveTask(null);
+  fetchTasks(); // Refresh to show updated actualHours
+  };
 
   // Form state
   const [formData, setFormData] = useState({
@@ -162,8 +177,8 @@ export default function TasksPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
+        <div className="text-xl text-gray-600 ">Loading...</div>
       </div>
     );
   }
@@ -192,27 +207,30 @@ const filteredTasks = tasks.filter(task => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 ">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white  shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <h1 className="text-2xl font-bold text-purple-600">📚 StudySync</h1>
             <nav className="flex gap-6">
-              <Link href="/dashboard" className="text-gray-600 hover:text-purple-600">
+              <Link href="/dashboard" className="text-gray-600  hover:text-purple-600">
                 Dashboard
               </Link>
               <Link href="/tasks" className="text-purple-600 font-semibold">
                 Tasks
               </Link>
-              <Link href="/schedule" className="text-gray-600 hover:text-purple-600">
+              <Link href="/schedule" className="text-gray-600  hover:text-purple-600">
                 Schedule
+              </Link>
+              <Link href="/analytics" className="text-gray-600 hover:text-purple-600">
+                Analytics
               </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-gray-700">👋 {user.name}</span>
-            <button onClick={handleLogout} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
+            <button onClick={handleLogout} className="px-4 py-2 text-sm text-gray-600  hover:text-gray-800 ">
               Logout
             </button>
           </div>
@@ -222,7 +240,7 @@ const filteredTasks = tasks.filter(task => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-bold text-gray-800">My Tasks</h2>
+          <h2 className="text-3xl font-bold text-gray-800 ">My Tasks</h2>
           <button
             onClick={() => {
               setEditingTask(null);
@@ -240,7 +258,7 @@ const filteredTasks = tasks.filter(task => {
           <button
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'all' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+              filter === 'all' ? 'bg-purple-600 text-white' : 'bg-white  text-gray-600  hover:bg-gray-100'
             }`}
           >
             All ({tasks.length})
@@ -248,7 +266,7 @@ const filteredTasks = tasks.filter(task => {
           <button
             onClick={() => setFilter('pending')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'pending' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+              filter === 'pending' ? 'bg-purple-600 text-white' : 'bg-white  text-gray-600  hover:bg-gray-100'
             }`}
           >
             Pending ({tasks.filter(t => t.status !== 'completed').length})
@@ -256,7 +274,7 @@ const filteredTasks = tasks.filter(task => {
           <button
             onClick={() => setFilter('completed')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'completed' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+              filter === 'completed' ? 'bg-purple-600 text-white' : 'bg-white  text-gray-600  hover:bg-gray-100'
             }`}
           >
             Completed ({tasks.filter(t => t.status === 'completed').length})
@@ -267,10 +285,10 @@ const filteredTasks = tasks.filter(task => {
         {loading ? (
           <div className="text-center py-12 text-gray-500">Loading tasks...</div>
         ) : filteredTasks.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div className="bg-white  rounded-xl shadow-sm p-12 text-center">
             <div className="text-6xl mb-4">📝</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">No tasks yet</h3>
-            <p className="text-gray-600 mb-6">Create your first task to get started with AI scheduling!</p>
+            <h3 className="text-xl font-semibold text-gray-800  mb-2">No tasks yet</h3>
+            <p className="text-gray-600  mb-6">Create your first task to get started with AI scheduling!</p>
             <button
               onClick={() => setShowModal(true)}
               className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
@@ -287,11 +305,11 @@ const filteredTasks = tasks.filter(task => {
               const isOverdue = daysUntil < 0 && task.status !== 'completed';
 
               return (
-                <div key={task._id} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div key={task._id} className="bg-white  rounded-xl shadow-sm p-6 border border-gray-100">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-semibold text-gray-800">{task.title}</h3>
+                        <h3 className="text-xl font-semibold text-gray-800 ">{task.title}</h3>
                         <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getPriorityColor(task.priority)}`}>
                           {task.priority.toUpperCase()}
                         </span>
@@ -302,7 +320,7 @@ const filteredTasks = tasks.filter(task => {
                         )}
                       </div>
 
-                      <div className="text-gray-600 mb-3">{task.subject}</div>
+                      <div className="text-gray-600  mb-3">{task.subject}</div>
 
                       <div className="flex items-center gap-6 text-sm text-gray-500">
                         <div>📅 Due: {new Date(task.deadline).toLocaleDateString()}</div>
@@ -322,7 +340,7 @@ const filteredTasks = tasks.filter(task => {
                       </div>
 
                       {task.notes && (
-                        <div className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                        <div className="mt-3 text-sm text-gray-600  bg-gray-50  p-3 rounded-lg">
                           {task.notes}
                         </div>
                       )}
@@ -335,6 +353,14 @@ const filteredTasks = tasks.filter(task => {
                       >
                         Edit
                       </button>
+
+                      <button
+                        onClick={() => handleStartTimer(task)}
+                        className="px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors"
+                      >
+                        ⏱️ Start Focus
+                      </button>
+
                       <button
                         onClick={() => handleDelete(task._id)}
                         className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
@@ -353,9 +379,9 @@ const filteredTasks = tasks.filter(task => {
       {/* Add/Edit Task Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white  rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b">
-              <h3 className="text-2xl font-bold text-gray-800">
+              <h3 className="text-2xl font-bold text-gray-800 ">
                 {editingTask ? 'Edit Task' : 'Create New Task'}
               </h3>
             </div>
@@ -455,7 +481,7 @@ const filteredTasks = tasks.filter(task => {
                     setEditingTask(null);
                     resetForm();
                   }}
-                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50  transition-colors"
                 >
                   Cancel
                 </button>
@@ -465,11 +491,27 @@ const filteredTasks = tasks.filter(task => {
                 >
                   {editingTask ? 'Update Task' : 'Create Task'}
                 </button>
+                
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Pomodoro Timer Modal */}
+      {showTimer && activeTask && token &&(
+        <PomodoroTimer
+          taskId={activeTask._id}
+          taskTitle={activeTask.title}
+          onComplete={handleTimerComplete}
+          onCancel={() => {
+            setShowTimer(false);
+            setActiveTask(null);
+          }}
+          token={token}
+        />
+      )}
+
     </div>
   );
 }

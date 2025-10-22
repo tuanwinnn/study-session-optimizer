@@ -124,8 +124,8 @@ export default function SchedulePage() {
   // While we don't yet know auth status, show a placeholder spinner page
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-gray-50  flex items-center justify-center">
+        <div className="text-xl text-gray-600 ">Loading...</div>
       </div>
     );
   }
@@ -153,52 +153,58 @@ export default function SchedulePage() {
     };
   });
 
-  // Color-code events by priority (fallback to purple if unknown)
-  const eventStyleGetter = (event: CalendarEvent) => {
-    const colors: { [key: string]: string } = {
-      high: '#ef4444',
-      medium: '#f59e0b',
-      low: '#10b981',
-    };
-
-    const backgroundColor = colors[event.resource.priority] || '#8b5cf6';
-
-    return {
-      style: {
-        backgroundColor,
-        borderRadius: '6px',
-        opacity: 0.9,
-        color: 'white',
-        border: '0px',
-        display: 'block',
-        fontSize: '13px',
-        fontWeight: '600',
-      },
-    };
+// Color-code events by priority with better readability
+const eventStyleGetter = (event: CalendarEvent) => {
+  const colors: { [key: string]: { bg: string; text: string } } = {
+    high: { bg: '#dc2626', text: '#ffffff' },      // Red with white text
+    medium: { bg: '#f59e0b', text: '#ffffff' },    // Orange with white text
+    low: { bg: '#10b981', text: '#ffffff' },       // Green with white text
   };
 
+  const color = colors[event.resource.priority] || { bg: '#8b5cf6', text: '#ffffff' };
+
+  return {
+    style: {
+      backgroundColor: color.bg,
+      color: color.text,
+      borderRadius: '6px',
+      opacity: 1,
+      border: 'none',
+      display: 'block',
+      fontSize: '14px',
+      fontWeight: '700',
+      padding: '6px 8px',
+      lineHeight: '1.4',
+      textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+    },
+  };
+};
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 ">
       {/* Header / Nav */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white  shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <h1 className="text-2xl font-bold text-purple-600">📚 StudySync</h1>
             <nav className="flex gap-6">
-              <Link href="/dashboard" className="text-gray-600 hover:text-purple-600">
+              <Link href="/dashboard" className="text-gray-600  hover:text-purple-600">
                 Dashboard
               </Link>
-              <Link href="/tasks" className="text-gray-600 hover:text-purple-600">
+              <Link href="/tasks" className="text-gray-600  hover:text-purple-600">
                 Tasks
               </Link>
               <Link href="/schedule" className="text-purple-600 font-semibold">
                 Schedule
               </Link>
+              <Link href="/analytics" className="text-gray-600 hover:text-purple-600">
+                Analytics
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-gray-700">👋 {user.name}</span>
-            <button onClick={handleLogout} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
+            <button onClick={handleLogout} className="px-4 py-2 text-sm text-gray-600  hover:text-gray-800 ">
               Logout
             </button>
           </div>
@@ -209,8 +215,8 @@ export default function SchedulePage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Page intro */}
         <div className="mb-6">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">AI Study Schedule</h2>
-          <p className="text-gray-600">Generate an optimized study schedule based on your tasks and deadlines</p>
+          <h2 className="text-3xl font-bold text-gray-800  mb-2">AI Study Schedule</h2>
+          <p className="text-gray-600 ">Generate an optimized study schedule based on your tasks and deadlines</p>
         </div>
 
         {/* Generate button */}
@@ -273,9 +279,9 @@ export default function SchedulePage() {
 
         {/* Calendar display */}
         {schedule.length > 0 ? (
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="bg-white  rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-gray-800">Your Optimized Schedule</h3>
+              <h3 className="text-xl font-bold text-gray-800 ">Your Optimized Schedule</h3>
               {/* Simple legend for priority colors */}
               <div className="flex gap-3 text-sm">
                 <div className="flex items-center gap-2">
@@ -319,10 +325,10 @@ export default function SchedulePage() {
           </div>
         ) : (
           // Empty state encouraging the user to generate a schedule
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100">
+          <div className="bg-white  rounded-xl shadow-sm p-12 text-center border border-gray-100">
             <div className="text-6xl mb-4">📅</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">No Schedule Yet</h3>
-            <p className="text-gray-600 mb-6">Click the button above to generate your AI-optimized study schedule!</p>
+            <h3 className="text-xl font-semibold text-gray-800  mb-2">No Schedule Yet</h3>
+            <p className="text-gray-600  mb-6">Click the button above to generate your AI-optimized study schedule!</p>
             <div className="text-sm text-gray-500">
               Make sure you have some pending tasks in your{' '}
               <Link href="/tasks" className="text-purple-600 hover:underline font-semibold">
@@ -339,10 +345,10 @@ export default function SchedulePage() {
             onClick={() => setSelectedEvent(null)}
           >
             <div
-              className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6"
+              className="bg-white  rounded-2xl shadow-2xl max-w-lg w-full p-6"
               onClick={(e) => e.stopPropagation()} // prevent backdrop click from closing while interacting
             >
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">{selectedEvent.taskTitle}</h3>
+              <h3 className="text-2xl font-bold text-gray-800  mb-4">{selectedEvent.taskTitle}</h3>
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-gray-700">
@@ -375,7 +381,7 @@ export default function SchedulePage() {
 
                 <div className="pt-3 border-t">
                   <span className="font-semibold text-gray-700 block mb-2">AI Reasoning:</span>
-                  <p className="text-gray-600 italic">{selectedEvent.reasoning}</p>
+                  <p className="text-gray-600  italic">{selectedEvent.reasoning}</p>
                 </div>
               </div>
 
