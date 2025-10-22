@@ -75,23 +75,23 @@ A full-stack productivity platform that helps students optimize their study sche
 *Main dashboard showing study stats and quick actions*
 
 ### Task Management
-![Tasks](public/screenshots/tasks.jpg)
+![Tasks](public/screenshots/study-sync-tasks.jpg)
 ### Create Task
-![Create Tasks](public/screenshots/create-tasks.jpg)
+![Create Tasks](public/screenshots/study-sync-create-tasks.jpg)
 *Create and manage tasks with deadlines and priorities*
 
 ### AI-Generated Schedule
-![Schedule](public/screenshots/AI-generate-schedule.jpg)
+![Schedule](public/screenshots/study-sync-AI-generate-schedule.jpg)
+![Schedule](public/screenshots/study-sync-AI-generate-scheduleP2.jpg)
 *AI-optimized weekly study schedule with color-coded priorities*
-![Schedule](public/screenshots/AI-generate-scheduleP2.jpg)
 
 ### Pomodoro Timer
-![Timer](public/screenshots/timer.png)
+![Timer](public/screenshots/study-sync-pomodoro.jpg)
 *25-minute focus sessions with progress tracking*
 
 ### Analytics Dashboard
-![Analytics](public/screenshots/analyticsP1.jpg)
-![Analytics](public/screenshots/analyticsP2.jpg)
+![Analytics](public/screenshots/study-sync-analyticsP1.jpg)
+![Analytics](public/screenshots/study-sync-analyticsP2.jpg)
 *Detailed insights and study pattern analysis*
 
 ---
