@@ -12,8 +12,8 @@ A full-stack productivity platform that helps students optimize their study sche
 **[View Live Application →](https://study-session-optimizer.vercel.app/)**
 
 **Test Account:**
-- Email: `demo@studysync.com`
-- Password: `Demo2024!`
+- Email: `email of your choice`
+- Password: `password of your choice!`
 
 *Or create your own account - no email verification required!*
 
