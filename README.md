@@ -309,8 +309,8 @@ This project is licensed under the MIT License.
 ## 📧 Contact
 
 **Tuan Nguyen**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
+- GitHub: [@tuanwinnn](https://github.com/tuanwinnn)
+- LinkedIn: [Tuan Nguyen](linkedin.com/in/tuan-nguyen-237656326)
 
 ---
 
