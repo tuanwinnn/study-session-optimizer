@@ -1,4 +1,4 @@
-# 📚 StudySync - AI-Powered Study Session Optimizer
+# StudySync - AI-Powered Study Session Optimizer
 
 A full-stack productivity platform that helps students optimize their study schedules using AI-powered insights and Pomodoro time tracking.
 
@@ -7,7 +7,7 @@ A full-stack productivity platform that helps students optimize their study sche
 ![MongoDB](https://img.shields.io/badge/MongoDB-Latest-green)
 ![OpenAI](https://img.shields.io/badge/OpenAI-API-orange)
 
-## 🌐 Live Demo
+## Live Demo
 
 **[View Live Application →](https://study-session-optimizer.vercel.app/)**
 
@@ -19,16 +19,16 @@ A full-stack productivity platform that helps students optimize their study sche
 
 ---
 
-## ✨ Features
+## Features
 
-### 🎯 Smart Task Management
+### Smart Task Management
 - Create, edit, and delete study tasks with deadlines
 - Set priority levels (High, Medium, Low)
 - Estimate time required for each task
 - Track actual time spent vs. estimated
 - Auto-hide overdue tasks
 
-### ⏱️ Pomodoro Timer Integration
+### Pomodoro Timer Integration
 - Built-in 25-minute Pomodoro timer with visual countdown
 - Automatic break scheduling (5 min short breaks, 15 min long breaks after 4 Pomodoros)
 - Session persistence - all study sessions saved to database
@@ -36,7 +36,7 @@ A full-stack productivity platform that helps students optimize their study sche
 - Real-time progress bar and Pomodoro counter
 - Updates task `actualHours` automatically
 
-### 🤖 AI Schedule Generation
+### AI Schedule Generation
 - **Powered by OpenAI GPT-4o-mini**
 - Generates optimized weekly study schedules based on your tasks
 - Considers task priorities, deadlines, and estimated hours
@@ -46,7 +46,7 @@ A full-stack productivity platform that helps students optimize their study sche
 - Provides personalized AI insights and study recommendations
 - Visual calendar view with color-coded priorities (High=Red, Medium=Orange, Low=Green)
 
-### 📊 Advanced Analytics Dashboard
+### Advanced Analytics Dashboard
 - **Study metrics**: Total Pomodoros completed, hours studied, current study streak
 - **Accuracy tracking**: Compare estimated vs. actual time for each task
 - **Visual charts**: 
@@ -60,7 +60,7 @@ A full-stack productivity platform that helps students optimize their study sche
 - **Task performance table**: Detailed view with color-coded accuracy ratings (Green ≥80%, Yellow ≥60%, Red <60%)
 - **Enhanced readability**: Bold, high-contrast text for all metrics
 
-### 🔐 Authentication
+### Authentication
 - Secure JWT-based authentication
 - User registration and login
 - Protected routes and API endpoints
@@ -68,7 +68,7 @@ A full-stack productivity platform that helps students optimize their study sche
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 ### Dashboard Overview
 ![Dashboard](public/screenshots/study-sync-dashboard.jpg)
@@ -96,7 +96,7 @@ A full-stack productivity platform that helps students optimize their study sche
 
 ---
 
-## 🚀 Tech Stack
+## Tech Stack
 
 ### Frontend
 - **Framework**: Next.js 15 (App Router)
@@ -115,7 +115,7 @@ A full-stack productivity platform that helps students optimize their study sche
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 - Node.js 18+
@@ -160,7 +160,7 @@ A full-stack productivity platform that helps students optimize their study sche
 
 ---
 
-## 🚀 Deployment (Vercel)
+## Deployment (Vercel)
 
 1. **Push to GitHub**
    ```bash
@@ -177,7 +177,7 @@ A full-stack productivity platform that helps students optimize their study sche
 
 ---
 
-## 📝 API Documentation
+## API Documentation
 
 ### Authentication
 - `POST /api/auth/register` - Register new user
@@ -203,7 +203,7 @@ A full-stack productivity platform that helps students optimize their study sche
 
 ---
 
-## 🎨 Key Features Explained
+## Key Features Explained
 
 ### AI Schedule Generation
 The AI analyzes your tasks and generates an optimized study schedule by:
@@ -231,7 +231,7 @@ The system tracks:
 
 ---
 
-## 🛠️ Project Structure
+## Project Structure
 
 ```
 study-session-optimizer/
@@ -260,7 +260,7 @@ study-session-optimizer/
 
 ---
 
-## 💡 Usage Tips
+## Usage Tips
 
 1. **Create Tasks First**: Add assignments with realistic deadlines and time estimates
 2. **Generate AI Schedule**: Click "Generate AI Schedule" to get an optimized study plan
@@ -272,7 +272,7 @@ study-session-optimizer/
 
 ---
 
-## 🎯 Future Enhancements
+## Future Enhancements
 
 - [ ] Mobile app (React Native)
 - [ ] Collaborative study rooms with real-time sync
@@ -288,7 +288,7 @@ study-session-optimizer/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -300,13 +300,13 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
 ---
 
-## 📧 Contact
+## Contact
 
 **Tuan Nguyen**
 - GitHub: [@tuanwinnn](https://github.com/tuanwinnn)
@@ -314,7 +314,7 @@ This project is licensed under the MIT License.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - OpenAI for GPT API
 - Next.js team for the amazing framework
@@ -323,6 +323,3 @@ This project is licensed under the MIT License.
 
 ---
 
-**Built with ❤️ by [Tuan Nguyen]**
-
-*Making studying smarter, not harder.*
