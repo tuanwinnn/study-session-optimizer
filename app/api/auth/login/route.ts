@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import User from '@/models/User';
+import { prisma } from '@/lib/prisma';
 import { verifyPassword, generateToken } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
-    await connectDB();
     const { email, password } = await request.json();
 
     // Find user
-    const user = await User.findOne({ email });
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
@@ -27,13 +25,13 @@ export async function POST(request: Request) {
     }
 
     // Generate token
-    const token = generateToken(user._id.toString());
+    const token = generateToken(user.id);
 
     return NextResponse.json({
       message: 'Login successful',
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
       },

@@ -1,14 +1,10 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import StudySession from '@/models/StudySession';
-import Task from '@/models/Task';
+import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
 /**
  * Extract the authenticated user's ID from a Bearer token in the Authorization header.
  * Returns null if the header is missing/invalid or token verification fails.
- *
- * NOTE: Consider wrapping verifyToken in try/catch to handle malformed/expired JWTs gracefully.
  */
 async function getUserIdFromRequest(request: Request) {
   const authHeader = request.headers.get('authorization');
@@ -16,28 +12,28 @@ async function getUserIdFromRequest(request: Request) {
     return null;
   }
   const token = authHeader.split(' ')[1];
-  const decoded = verifyToken(token); // TODO: handle thrown errors in verifyToken
+  const decoded = verifyToken(token);
   return decoded?.userId || null;
 }
 
 /**
- * GET /api/...  — Fetch all study sessions for the authenticated user.
+ * GET /api/sessions — Fetch all study sessions for the authenticated user.
  * - Requires a valid Bearer token.
- * - Populates the related Task document.
- * - Sorts by most recently created. Requires timestamps on the schema.
+ * - Includes the related Task record.
+ * - Sorts by most recently created.
  */
 export async function GET(request: Request) {
   try {
-    await connectDB(); // Safe to call per-request; your helper should reuse existing connection.
-
     const userId = await getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const sessions = await StudySession.find({ userId })
-      .populate('taskId')
-      .sort({ createdAt: -1 });
+    const sessions = await prisma.studySession.findMany({
+      where: { userId },
+      include: { task: true },
+      orderBy: { createdAt: 'desc' },
+    });
 
     return NextResponse.json(sessions);
   } catch (error) {
@@ -47,26 +43,23 @@ export async function GET(request: Request) {
 }
 
 /**
- * POST /api/...  — Start a new study session for a task.
+ * POST /api/sessions — Start a new study session for a task.
  * Body: { taskId: string }
  * - Ensures the user has no active session (endTime === null).
  * - Creates a session with startTime = now.
  */
 export async function POST(request: Request) {
   try {
-    await connectDB();
-
     const userId = await getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { taskId } = await request.json(); 
+    const { taskId } = await request.json();
 
     // Check if there's an active session (no endTime set) for this user.
-    const activeSession = await StudySession.findOne({
-      userId,
-      endTime: null,
+    const activeSession = await prisma.studySession.findFirst({
+      where: { userId, endTime: null },
     });
 
     if (activeSession) {
@@ -76,10 +69,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const session = await StudySession.create({
-      userId,
-      taskId,
-      startTime: new Date(), // Server time; OK for duration math.
+    const session = await prisma.studySession.create({
+      data: {
+        userId,
+        taskId,
+        startTime: new Date(), // Server time; OK for duration math.
+      },
     });
 
     return NextResponse.json(session, { status: 201 });
@@ -90,7 +85,7 @@ export async function POST(request: Request) {
 }
 
 /**
- * PUT /api/...  — Stop/pause/complete an existing session and update aggregates.
+ * PUT /api/sessions — Stop/pause/complete an existing session and update aggregates.
  * Body: {
  *   sessionId: string;
  *   pomodorosCompleted?: number;
@@ -100,12 +95,9 @@ export async function POST(request: Request) {
  * - Sets endTime to now and computes totalMinutes from startTime.
  * - Persists per-session metadata (pomodorosCompleted, wasCompleted, notes).
  * - Increments Task.actualHours by totalMinutes / 60.
- *
  */
 export async function PUT(request: Request) {
   try {
-    await connectDB();
-
     const userId = await getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -114,7 +106,9 @@ export async function PUT(request: Request) {
     const { sessionId, pomodorosCompleted, wasCompleted, notes } = await request.json();
 
     // Ensure the session exists and belongs to the user.
-    const session = await StudySession.findOne({ _id: sessionId, userId });
+    const session = await prisma.studySession.findFirst({
+      where: { id: sessionId, userId },
+    });
 
     if (!session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
@@ -125,23 +119,24 @@ export async function PUT(request: Request) {
       (endTime.getTime() - session.startTime.getTime()) / 60000
     );
 
-    // Update session fields.
-    session.endTime = endTime;
-    session.pomodorosCompleted = pomodorosCompleted;
-    session.totalMinutes = totalMinutes;
-    session.wasCompleted = wasCompleted;
-    if (notes) session.notes = notes;
+    const updatedSession = await prisma.studySession.update({
+      where: { id: session.id },
+      data: {
+        endTime,
+        pomodorosCompleted,
+        totalMinutes,
+        wasCompleted,
+        ...(notes ? { notes } : {}),
+      },
+    });
 
-    await session.save();
+    // Update related Task's actualHours (atomic increment, aggregate of work).
+    await prisma.task.update({
+      where: { id: session.taskId },
+      data: { actualHours: { increment: totalMinutes / 60 } },
+    });
 
-    // Update related Task's actualHours (aggregate of work).
-    const task = await Task.findById(session.taskId);
-    if (task) {
-      task.actualHours = (task.actualHours || 0) + totalMinutes / 60;
-      await task.save();
-    }
-
-    return NextResponse.json(session);
+    return NextResponse.json(updatedSession);
   } catch (error) {
     console.error('Error updating session:', error);
     return NextResponse.json({ error: 'Failed to update session' }, { status: 500 });

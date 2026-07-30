@@ -7,7 +7,7 @@ import Link from 'next/link';
 import PomodoroTimer from '../components/PomodoroTimer';
 
 interface Task {
-  _id: string;
+  id: string;
   title: string;
   subject: string;
   priority: 'low' | 'medium' | 'high';
@@ -26,6 +26,7 @@ export default function TasksPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [showOldCompleted, setShowOldCompleted] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
@@ -87,7 +88,7 @@ const handleTimerComplete = () => {
       const url = editingTask ? '/api/tasks' : '/api/tasks';
       const method = editingTask ? 'PUT' : 'POST';
       const body = editingTask
-        ? { id: editingTask._id, ...formData }
+        ? { id: editingTask.id, ...formData }
         : formData;
 
       const response = await fetch(url, {
@@ -185,11 +186,20 @@ const handleTimerComplete = () => {
 
   if (!user) return null;
 
+const OLD_COMPLETED_DAYS = 30;
+
 const filteredTasks = tasks.filter(task => {
   // First, filter out overdue tasks (past deadline and not completed)
   const isOverdue = new Date(task.deadline) < new Date() && task.status !== 'completed';
   if (isOverdue) return false;
-  
+
+  // Completed tasks are kept forever (for analytics/accuracy history), but
+  // hidden from view once old, unless the user opts in to see them.
+  if (task.status === 'completed' && !showOldCompleted) {
+    const daysSinceDeadline = (new Date().getTime() - new Date(task.deadline).getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSinceDeadline > OLD_COMPLETED_DAYS) return false;
+  }
+
   // Then apply the regular filters
   if (filter === 'all') return true;
   if (filter === 'pending') return task.status === 'pending' || task.status === 'in-progress';
@@ -281,6 +291,19 @@ const filteredTasks = tasks.filter(task => {
           </button>
         </div>
 
+        {/* Toggle for completed tasks older than OLD_COMPLETED_DAYS, hidden by default */}
+        {tasks.some(t => t.status === 'completed' && (new Date().getTime() - new Date(t.deadline).getTime()) / (1000 * 60 * 60 * 24) > OLD_COMPLETED_DAYS) && (
+          <label className="flex items-center gap-2 mb-6 text-sm text-gray-600  cursor-pointer w-fit">
+            <input
+              type="checkbox"
+              checked={showOldCompleted}
+              onChange={(e) => setShowOldCompleted(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            Show completed tasks older than {OLD_COMPLETED_DAYS} days
+          </label>
+        )}
+
         {/* Tasks List */}
         {loading ? (
           <div className="text-center py-12 text-gray-500">Loading tasks...</div>
@@ -305,7 +328,7 @@ const filteredTasks = tasks.filter(task => {
               const isOverdue = daysUntil < 0 && task.status !== 'completed';
 
               return (
-                <div key={task._id} className="bg-white  rounded-xl shadow-sm p-6 border border-gray-100">
+                <div key={task.id} className="bg-white  rounded-xl shadow-sm p-6 border border-gray-100">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -329,7 +352,7 @@ const filteredTasks = tasks.filter(task => {
                           Status:{' '}
                           <select
                             value={task.status}
-                            onChange={(e) => handleStatusChange(task._id, e.target.value)}
+                            onChange={(e) => handleStatusChange(task.id, e.target.value)}
                             className="ml-1 border border-gray-300 rounded px-2 py-1 text-sm"
                           >
                             <option value="pending">Pending</option>
@@ -362,7 +385,7 @@ const filteredTasks = tasks.filter(task => {
                       </button>
 
                       <button
-                        onClick={() => handleDelete(task._id)}
+                        onClick={() => handleDelete(task.id)}
                         className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
                       >
                         Delete
@@ -501,7 +524,7 @@ const filteredTasks = tasks.filter(task => {
       {/* Pomodoro Timer Modal */}
       {showTimer && activeTask && token &&(
         <PomodoroTimer
-          taskId={activeTask._id}
+          taskId={activeTask.id}
           taskTitle={activeTask.title}
           onComplete={handleTimerComplete}
           onCancel={() => {

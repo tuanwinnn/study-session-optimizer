@@ -15,7 +15,7 @@ import Link from 'next/link';
 
 // Task model expected from the backend
 interface Task {
-  _id: string;
+  id: string;
   title: string;
   subject: string;
   priority: string; // 'high' | 'medium' | 'low' (by convention)
@@ -228,7 +228,7 @@ export default function Dashboard() {
 
                   return (
                     <div
-                      key={task._id}
+                      key={task.id}
                       className={`p-3 rounded-lg border-l-4 ${
                         isUrgent ? 'bg-red-50 border-red-500' : 'bg-gray-50  border-purple-500'
                       }`}

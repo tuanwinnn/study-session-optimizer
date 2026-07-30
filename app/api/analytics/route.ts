@@ -1,9 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import StudySession from '@/models/StudySession';
-import Task from '@/models/Task';
+import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
 async function getUserIdFromRequest(request: Request) {
@@ -24,21 +20,22 @@ async function getUserIdFromRequest(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    await connectDB();
-
     const userId = await getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get all completed sessions
-    const sessions = await StudySession.find({
-      userId,
-      endTime: { $ne: null },
-    }).populate('taskId');
+    const sessions = await prisma.studySession.findMany({
+      where: {
+        userId,
+        endTime: { not: null },
+      },
+      include: { task: true },
+    });
 
     // Get all tasks for this user
-    const tasks = await Task.find({ userId });
+    const tasks = await prisma.task.findMany({ where: { userId } });
 
     // Filter sessions from last 7 days for weekly stats
     const now = new Date();
@@ -61,7 +58,7 @@ export async function GET(request: Request) {
         : 0;
 
       return {
-        taskId: task._id,
+        taskId: task.id,
         title: task.title,
         subject: task.subject,
         estimated,
@@ -81,10 +78,8 @@ export async function GET(request: Request) {
     // Study time by subject
     const subjectData: { [key: string]: number } = {};
     sessions.forEach(session => {
-      if (session.taskId && typeof session.taskId === 'object' && 'subject' in session.taskId) {
-        const subject = (session.taskId as any).subject;
-        subjectData[subject] = (subjectData[subject] || 0) + session.totalMinutes / 60;
-      }
+      const subject = session.task.subject;
+      subjectData[subject] = (subjectData[subject] || 0) + session.totalMinutes / 60;
     });
 
     // Study time by hour of day

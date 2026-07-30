@@ -4,7 +4,8 @@ A full-stack productivity platform that helps students optimize their study sche
 
 ![Next.js](https://img.shields.io/badge/Next.js-15-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
-![MongoDB](https://img.shields.io/badge/MongoDB-Latest-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-336791)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748)
 ![OpenAI](https://img.shields.io/badge/OpenAI-API-orange)
 
 ## Live Demo
@@ -109,7 +110,7 @@ A full-stack productivity platform that helps students optimize their study sche
 ### Backend
 - **Runtime**: Node.js
 - **API**: Next.js API Routes
-- **Database**: MongoDB with Mongoose ODM
+- **Database**: PostgreSQL (Neon) with Prisma ORM
 - **Authentication**: JWT (jsonwebtoken + bcryptjs)
 - **AI**: OpenAI API (GPT-4o-mini)
 
@@ -119,7 +120,7 @@ A full-stack productivity platform that helps students optimize their study sche
 
 ### Prerequisites
 - Node.js 18+
-- MongoDB database (local or MongoDB Atlas)
+- PostgreSQL database (e.g. a free [Neon](https://neon.tech) project)
 - OpenAI API key
 
 ### Setup
@@ -139,8 +140,11 @@ A full-stack productivity platform that helps students optimize their study sche
    
    Create a `.env.local` file in the root directory:
    ```env
-   # MongoDB
-   MONGODB_URI=your_mongodb_connection_string
+   # PostgreSQL (Neon) - pooled connection for the app
+   DATABASE_URL=your_neon_pooled_connection_string
+
+   # PostgreSQL (Neon) - direct connection for migrations
+   DIRECT_URL=your_neon_direct_connection_string
 
    # JWT Secret (use a strong random string)
    JWT_SECRET=your_secure_jwt_secret_key
@@ -149,12 +153,17 @@ A full-stack productivity platform that helps students optimize their study sche
    OPENAI_API_KEY=your_openai_api_key
    ```
 
-4. **Run the development server**
+4. **Run database migrations**
+   ```bash
+   npx prisma migrate dev
+   ```
+
+5. **Run the development server**
    ```bash
    npm run dev
    ```
 
-5. **Open your browser**
+6. **Open your browser**
    
    Navigate to [http://localhost:3000](http://localhost:3000)
 
@@ -172,7 +181,7 @@ A full-stack productivity platform that helps students optimize their study sche
 2. **Deploy to Vercel**
    - Go to [vercel.com](https://vercel.com)
    - Import your GitHub repository
-   - Add environment variables (`MONGODB_URI`, `JWT_SECRET`, `OPENAI_API_KEY`)
+   - Add environment variables (`DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `OPENAI_API_KEY`)
    - Deploy!
 
 ---
@@ -250,11 +259,9 @@ study-session-optimizer/
 ├── lib/
 │   ├── auth-context.tsx  # Auth state management
 │   ├── auth.ts          # JWT utilities
-│   └── mongodb.ts       # Database connection
-├── models/
-│   ├── Task.ts          # Task schema
-│   ├── User.ts          # User schema
-│   └── StudySession.ts  # Session schema
+│   └── prisma.ts        # Prisma client singleton
+├── prisma/
+│   └── schema.prisma    # User, Task, StudySession models
 └── public/              # Static assets
 ```
 
@@ -318,7 +325,7 @@ This project is licensed under the MIT License.
 
 - OpenAI for GPT API
 - Next.js team for the amazing framework
-- MongoDB for reliable data storage
+- Neon and Prisma for a great Postgres developer experience
 - Recharts for beautiful visualizations
 
 ---

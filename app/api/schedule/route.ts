@@ -1,13 +1,39 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import connectDB from '@/lib/mongodb';
-import Task from '@/models/Task';
+import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
+
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+// Sliding-window rate limit backed by ScheduleRequestLog, since Vercel's
+// serverless routes don't share in-memory state across invocations.
+// Returns true (and logs the request) if the caller is under the limit.
+async function checkAndLogRateLimit(userId: string): Promise<boolean> {
+  const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MS);
+
+  // Keep the table bounded by dropping this user's expired entries here
+  // rather than relying on a separate cleanup job.
+  await prisma.scheduleRequestLog.deleteMany({
+    where: { userId, createdAt: { lt: windowStart } },
+  });
+
+  const recentCount = await prisma.scheduleRequestLog.count({
+    where: { userId, createdAt: { gte: windowStart } },
+  });
+
+  if (recentCount >= RATE_LIMIT_MAX_REQUESTS) {
+    return false;
+  }
+
+  await prisma.scheduleRequestLog.create({ data: { userId } });
+  return true;
+}
 
 // Helper function to get userId from request
 async function getUserIdFromRequest(request: Request) {
@@ -28,7 +54,7 @@ interface UserPreferences {
 }
 
 interface TaskDocument {
-  _id: string;
+  id: string;
   title: string;
   subject: string;
   priority: string;
@@ -40,23 +66,34 @@ interface TaskDocument {
 
 export async function POST(request: Request) {
   try {
-    await connectDB();
-
     const userId = await getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get user's pending tasks
-    const tasks = await Task.find({ 
-      userId, 
-      status: { $in: ['pending', 'in-progress'] } 
-    }).sort({ deadline: 1 });
+    const tasks = await prisma.task.findMany({
+      where: {
+        userId,
+        status: { in: ['pending', 'in-progress'] },
+      },
+      orderBy: { deadline: 'asc' },
+    });
 
     if (tasks.length === 0) {
       return NextResponse.json(
         { error: 'No pending tasks to schedule' },
         { status: 400 }
+      );
+    }
+
+    const withinLimit = await checkAndLogRateLimit(userId);
+    if (!withinLimit) {
+      return NextResponse.json(
+        {
+          error: `Rate limit exceeded. You can generate up to ${RATE_LIMIT_MAX_REQUESTS} schedules per hour. Please try again later.`,
+        },
+        { status: 429 }
       );
     }
 

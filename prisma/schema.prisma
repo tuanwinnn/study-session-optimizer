@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  tasks            Task[]
+  sessions         StudySession[]
+  scheduleRequests ScheduleRequestLog[]
+}
+
+model Task {
+  id             String   @id @default(cuid())
+  userId         String
+  title          String
+  subject        String
+  priority       String   @default("medium")
+  deadline       DateTime
+  estimatedHours Float
+  actualHours    Float    @default(0)
+  status         String   @default("pending")
+  notes          String   @default("")
+  createdAt      DateTime @default(now())
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions StudySession[]
+
+  @@index([userId])
+}
+
+model StudySession {
+  id                 String    @id @default(cuid())
+  userId             String
+  taskId             String
+  startTime          DateTime
+  endTime            DateTime?
+  pomodorosCompleted Int       @default(0)
+  totalMinutes       Int       @default(0)
+  wasCompleted       Boolean   @default(false)
+  notes              String    @default("")
+  createdAt          DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([taskId])
+}
+
+// One row per call to /api/schedule (the only OpenAI-calling route).
+// Used to enforce a sliding-window rate limit per user; rows older than
+// the window are deleted on each check, so this table stays bounded.
+model ScheduleRequestLog {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}

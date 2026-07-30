@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import Task from '@/models/Task';
+import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
 // Helper function to get userId from request
@@ -18,14 +17,26 @@ async function getUserIdFromRequest(request: Request) {
 // GET all tasks for user
 export async function GET(request: Request) {
   try {
-    await connectDB();
-
     const userId = await getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const tasks = await Task.find({ userId }).sort({ deadline: 1 });
+    // Expired tasks (deadline passed, never completed) are deleted lazily
+    // here rather than via a background job. Completed tasks are never
+    // touched, so their Pomodoro history and analytics stay intact.
+    await prisma.task.deleteMany({
+      where: {
+        userId,
+        status: { not: 'completed' },
+        deadline: { lt: new Date() },
+      },
+    });
+
+    const tasks = await prisma.task.findMany({
+      where: { userId },
+      orderBy: { deadline: 'asc' },
+    });
     return NextResponse.json(tasks);
   } catch (error) {
     console.error('Error fetching tasks:', error);
@@ -39,17 +50,18 @@ export async function GET(request: Request) {
 // POST create new task
 export async function POST(request: Request) {
   try {
-    await connectDB();
-
     const userId = await getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
-    const task = await Task.create({
-      ...body,
-      userId,
+    const task = await prisma.task.create({
+      data: {
+        ...body,
+        deadline: new Date(body.deadline),
+        userId,
+      },
     });
 
     return NextResponse.json(task, { status: 201 });
@@ -65,25 +77,28 @@ export async function POST(request: Request) {
 // PUT update task
 export async function PUT(request: Request) {
   try {
-    await connectDB();
-
     const userId = await getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id, ...updates } = await request.json();
+    if (updates.deadline) {
+      updates.deadline = new Date(updates.deadline);
+    }
 
-    const task = await Task.findOneAndUpdate(
-      { _id: id, userId },
-      updates,
-      { new: true }
-    );
+    // Ownership check must be part of the write itself, not a separate read -
+    // updateMany's `where` scopes the update to rows owned by this user.
+    const result = await prisma.task.updateMany({
+      where: { id, userId },
+      data: updates,
+    });
 
-    if (!task) {
+    if (result.count === 0) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
+    const task = await prisma.task.findUnique({ where: { id } });
     return NextResponse.json(task);
   } catch (error) {
     console.error('Error updating task:', error);
@@ -97,8 +112,6 @@ export async function PUT(request: Request) {
 // DELETE task
 export async function DELETE(request: Request) {
   try {
-    await connectDB();
-
     const userId = await getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -107,9 +120,11 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
-    const task = await Task.findOneAndDelete({ _id: id, userId });
+    const result = await prisma.task.deleteMany({
+      where: { id: id ?? undefined, userId },
+    });
 
-    if (!task) {
+    if (result.count === 0) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 

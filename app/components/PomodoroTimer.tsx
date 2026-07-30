@@ -34,8 +34,8 @@ export default function PomodoroTimer({ taskId, taskTitle, onComplete, onCancel,
 
       if (response.ok) {
         const data = await response.json();
-        setSessionId(data._id);
-        console.log('Session started:', data._id);
+        setSessionId(data.id);
+        console.log('Session started:', data.id);
       } else {
         console.error('Failed to start session');
       }

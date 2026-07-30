@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import User from '@/models/User';
+import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
-    await connectDB();
-
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -19,7 +16,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const user = await User.findById(decoded.userId).select('-password');
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { id: true, name: true, email: true, createdAt: true },
+    });
+
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
