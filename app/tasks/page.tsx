@@ -25,7 +25,7 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [filter, setFilter] = useState<'pending' | 'completed'>('pending');
   const [showOldCompleted, setShowOldCompleted] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -201,7 +201,6 @@ const filteredTasks = tasks.filter(task => {
   }
 
   // Then apply the regular filters
-  if (filter === 'all') return true;
   if (filter === 'pending') return task.status === 'pending' || task.status === 'in-progress';
   if (filter === 'completed') return task.status === 'completed';
   return true;
@@ -265,14 +264,6 @@ const filteredTasks = tasks.filter(task => {
 
         {/* Filters */}
         <div className="flex gap-3 mb-6">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'all' ? 'bg-purple-600 text-white' : 'bg-white  text-gray-600  hover:bg-gray-100'
-            }`}
-          >
-            All ({tasks.length})
-          </button>
           <button
             onClick={() => setFilter('pending')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
