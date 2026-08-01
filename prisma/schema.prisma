@@ -56,6 +56,7 @@ model StudySession {
 
   @@index([userId])
   @@index([taskId])
+  @@index([userId, createdAt])
 }
 
 // One row per call to /api/schedule (the only OpenAI-calling route).
